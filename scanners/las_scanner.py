@@ -7,7 +7,6 @@ import lasio.examples
 from mappings.LAS2HeaderMappings import HeaderMapping
 from utils.DateUtils import DateUtils
 from pathlib import Path
-import json
 
 class LasScanner:
     def __init__(self, file):
@@ -26,11 +25,13 @@ class LasScanner:
         las_headers = self._extract_header(las_file)
         las_curves_headers = self._extract_curve_headers(las_file)
         las_curves_data = self._extract_bulk_data(las_file)
+        las_parameters_data = self._extract_parameter_info(las_file)
 
         # Combine all sections into a single JSON structure
         combined_output = [
             {
                 "header": las_headers,
+                "parameters": las_parameters_data,
                 "curves": las_curves_headers,
                 "data": las_curves_data
             }
@@ -122,3 +123,32 @@ class LasScanner:
             curves.append(curve_data)
 
         return curves
+
+    def _extract_parameter_info(self, las_file):
+        """
+        Extract the parameter information block from a LAS file and structure it into the desired format.
+
+        Args:
+            las_file (lasio.LASFile): The LAS file object.
+
+        Returns:
+            dict: Parameter information formatted as specified.
+        """
+        # Initialize the structure for parameter information
+        parameter_info = {
+            "attributes": ["value", "unit", "description"],
+            "objects": {}
+        }
+
+        # Loop through the parameters in the LAS file
+        for param in las_file.params:
+            # Extract parameter mnemonic, unit, value, and description
+            mnemonic = param.mnemonic
+            unit = param.unit if param.unit else None
+            value = param.value
+            description = param.descr if param.descr else None
+
+            # Add parameter to the objects section
+            parameter_info["objects"][mnemonic] = [value, unit, description]
+
+        return parameter_info
