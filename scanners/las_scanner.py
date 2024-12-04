@@ -7,6 +7,7 @@ import lasio.examples
 from mappings.LAS2HeaderMappings import HeaderMapping
 from utils.DateUtils import DateUtils
 from pathlib import Path
+import json
 
 class LasScanner:
     def __init__(self, file):
@@ -18,7 +19,48 @@ class LasScanner:
 
         #getting the different section of las file in json format
         las_headers = self._extract_header(las_file)
+        las_curves_headers = self._extract_curve_headers(las_file)
+        las_curves_data = self._extract_bulk_data(las_file)
 
+        # Get different sections of the LAS file in JSON format
+        las_headers = self._extract_header(las_file)
+        las_curves_headers = self._extract_curve_headers(las_file)
+        las_curves_data = self._extract_bulk_data(las_file)
+
+        # Combine all sections into a single JSON structure
+        combined_output = [
+            {
+                "header": las_headers,
+                "curves": las_curves_headers,
+                "data": las_curves_data
+            }
+        ]
+
+        return combined_output
+
+    def _extract_bulk_data(self, las_file):
+        """
+        Extract bulk data (curve measurements) from a LAS file.
+
+        Args:
+            las_file (lasio.LASFile): The LAS file object.
+
+        Returns:
+            list: A list of data rows, each being an array of values corresponding to the curves.
+        """
+        # Extract data as a 2D array (rows and columns)
+        bulk_data = []
+
+        # Convert LAS curve data into a structured format
+        # Use the first curve to determine the number of rows (all curves have the same number of data points)
+        num_rows = len(las_file[las_file.curves[0].mnemonic])
+
+        for i in range(num_rows):
+            # Create a single row with all curve values for the current index
+            row = [las_file[curve.mnemonic][i] for curve in las_file.curves]
+            bulk_data.append(row)
+
+        return bulk_data
 
     #extracting only the headers of the well log file
     def _extract_header(self, las_file):
@@ -51,4 +93,32 @@ class LasScanner:
             if key in 'name':
                 header[key] = Path(self._file).stem
 
-        print(header)
+        return header
+
+    def _extract_curve_headers(self, las_file):
+        """
+        Extract curve information from a LAS file and structure it according to the provided JSON schema.
+
+        Args:
+            las_file (lasio.LASFile): The LAS file object.
+
+        Returns:
+            list: A list of curves in the specified JSON schema format.
+        """
+        curves = []
+
+        for curve in las_file.curves:
+            # Create a dictionary for each curve based on the schema
+            curve_data = {
+                "name": curve.mnemonic,  # Curve name or mnemonic
+                "description": curve.descr if curve.descr else None,  # Curve description
+                "quantity": None,  # LAS files typically don't provide quantity
+                "unit": curve.unit if curve.unit else None,  # Unit of measurement
+                "valueType": "float",  # Defaulting to float for LAS curve data
+                "dimensions": 1,  # LAS curve data is 1D
+                "axis": [],  # Axis is typically not defined in LAS
+                "maxSize": 20  # Default size
+            }
+            curves.append(curve_data)
+
+        return curves
