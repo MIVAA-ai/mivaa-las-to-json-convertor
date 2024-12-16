@@ -1,6 +1,6 @@
 import json
 import numpy as np
-
+from pydantic import BaseModel
 
 class JsonSerializable:
     @staticmethod
@@ -15,8 +15,11 @@ class JsonSerializable:
         Returns:
             str: The JSON string representation of the object.
         """
+
         def convert(item):
-            if isinstance(item, dict):
+            if isinstance(item, BaseModel):  # If it's a Pydantic model, convert it to a dictionary
+                return item.dict()
+            elif isinstance(item, dict):
                 return {k: convert(v) for k, v in item.items()}
             elif isinstance(item, list):
                 return [convert(v) for v in item]
