@@ -1,0 +1,1 @@
+{"status": "FAILURE", "result": {"exc_type": "NotRegistered", "exc_message": ["worker.tasks.convert_las_to_json_task"], "exc_module": "celery.exceptions"}, "traceback": null, "children": [], "date_done": "2024-12-16T18:36:28.823693+00:00", "task_id": "739436c9-c2c9-4728-917e-66f28cd30e4e"}
