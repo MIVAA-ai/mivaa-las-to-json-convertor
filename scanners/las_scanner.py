@@ -7,6 +7,8 @@ import lasio.examples
 from mappings.LAS2HeaderMappings import HeaderMapping
 from utils.DateUtils import DateUtils
 from pathlib import Path
+from pydantic import ValidationError
+from mappings.JSONWellLogFormat import JsonWellLogFormat
 
 class LasScanner:
     def __init__(self, file):
@@ -15,11 +17,6 @@ class LasScanner:
 
     def scan(self):
         las_file = lasio.read(self._file)
-
-        #getting the different section of las file in json format
-        las_headers = self._extract_header(las_file)
-        las_curves_headers = self._extract_curve_headers(las_file)
-        las_curves_data = self._extract_bulk_data(las_file)
 
         # Get different sections of the LAS file in JSON format
         las_headers = self._extract_header(las_file)
@@ -37,7 +34,14 @@ class LasScanner:
             }
         ]
 
-        return combined_output
+        # Validate against the Pydantic model
+        try:
+            validated_data = JsonWellLogFormat.model_validate(combined_output)
+            return validated_data
+        except ValidationError as e:
+            # Log or handle validation errors
+            print("Validation Error:", e)
+            raise
 
     def _extract_bulk_data(self, las_file):
         """

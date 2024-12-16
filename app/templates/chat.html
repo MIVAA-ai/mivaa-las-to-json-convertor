@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Chat with LAS Data</title>
+</head>
+<body>
+    <h1>Chat with LAS Data</h1>
+    <form action="/chat" method="post">
+        <input type="text" name="message" placeholder="Ask a question about your LAS data" required>
+        <button type="submit">Send</button>
+    </form>
+    {% if user_message %}
+        <h2>Question: {{ user_message }}</h2>
+        <h2>Answer: {{ response }}</h2>
+    {% endif %}
+</body>
+</html>
