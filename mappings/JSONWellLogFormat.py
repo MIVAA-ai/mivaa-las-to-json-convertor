@@ -1,5 +1,6 @@
 from typing import List, Dict, Union, Optional
-from pydantic import BaseModel, Field, RootModel, ConfigDict, field_validator
+from pydantic import BaseModel, Field, RootModel, ConfigDict, field_validator, model_validator
+import numpy as np
 
 # Represents the top-level structure for parameters
 class Parameters(BaseModel):
@@ -66,7 +67,30 @@ class Header(BaseModel):
             return str(v)  # Convert any non-string value to a string
         return v
 
-    model_config = {"extra": "allow"}  # Allow additional attributes
+    @model_validator(mode="before")
+    def clean_numpy_types(cls, values):
+        """
+        Model validator to ensure all NumPy types are converted to native Python types.
+        """
+        def clean_value(value):
+            if isinstance(value, np.generic):  # Handles np.int64, np.float64, etc.
+                return value.item()
+            elif isinstance(value, np.ndarray):  # Convert numpy arrays to lists
+                return value.tolist()
+            return value
+
+        if isinstance(values, dict):
+            return {key: clean_value(value) for key, value in values.items()}
+        return values
+
+    model_config = ConfigDict(
+        extra="allow",  # Allow additional fields
+        json_encoders={
+            np.int64: int,
+            np.float64: float,
+            np.ndarray: lambda v: v.tolist(),  # Convert numpy arrays to lists
+        },
+    )  # Allow additional attributes
 
 class DataRow(RootModel[List[Union[str, float, bool, None, List[Union[str, float, bool, None]]]]]):
     """Represents a single row of data as a root model."""
