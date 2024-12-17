@@ -1,5 +1,5 @@
 from typing import List, Dict, Union, Optional
-from pydantic import BaseModel, Field, RootModel, ConfigDict
+from pydantic import BaseModel, Field, RootModel, ConfigDict, field_validator
 
 # Represents the top-level structure for parameters
 class Parameters(BaseModel):
@@ -33,18 +33,40 @@ class Header(BaseModel):
     field: Optional[str] = Field(None, title="Field name")
     country: Optional[str] = Field(None, title="Country of operation")
     date: Optional[str] = Field(None, title="Logging date")
-    operator: str = Field(None, title="Operator company name")
+    operator: Optional[str] = Field(None, title="Operator company name")
     serviceCompany: Optional[str] = Field(None, title="The Service company name")
     runNumber: Optional[str] = Field(None, title="Run number")
-    elevation: Optional[float] = Field(None, title="Vertical distance between measured depth 0.0 and mean sea level")
+    elevation: Optional[float] = Field(
+        None, title="Vertical distance between measured depth 0.0 and mean sea level"
+    )
     source: Optional[str] = Field(None, title="Source system of process of this log")
     startIndex: Optional[float] = Field(None, title="Value of the first index")
     endIndex: Optional[float] = Field(None, title="Value of the last index")
     step: Optional[float] = Field(None, title="Distance between indices if regularly sampled")
     dataUri: Optional[str] = Field(None, title="Point to data source in case this is kept separate")
 
-    # Use ConfigDict for configuration
-    model_config = ConfigDict(extra='allow')  # Allow additional attributes
+    # Custom validator to ensure all string fields are coerced into strings
+    @field_validator(
+        "name",
+        "description",
+        "well",
+        "wellbore",
+        "field",
+        "country",
+        "date",
+        "operator",
+        "serviceCompany",
+        "runNumber",
+        "source",
+        "dataUri",
+        mode="before",
+    )
+    def coerce_to_string(cls, v):
+        if v is not None:
+            return str(v)  # Convert any non-string value to a string
+        return v
+
+    model_config = {"extra": "allow"}  # Allow additional attributes
 
 class DataRow(RootModel[List[Union[str, float, bool, None, List[Union[str, float, bool, None]]]]]):
     """Represents a single row of data as a root model."""

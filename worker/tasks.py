@@ -17,7 +17,12 @@ def convert_las_to_json_task(filepath, output_folder):
         scanner = Scanner(filepath)
         normalised_json = scanner.scan()
 
+        # Ensure json_data is a dict/list
         json_data = JsonSerializable.to_json(normalised_json)
+
+        # Check if json_data is already serialized, if so, load it back
+        if isinstance(json_data, str):
+            json_data = json.loads(json_data)
 
         # Save JSON to file
         filename = filepath.stem + ".json"

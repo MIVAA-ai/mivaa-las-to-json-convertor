@@ -1,1 +1,5 @@
 /.venv/
+/uploads/
+/sample-data/
+/processed/
+/worker/data/

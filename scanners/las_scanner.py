@@ -16,7 +16,7 @@ class LasScanner:
 
 
     def scan(self):
-        las_file = lasio.read(self._file)
+        las_file = lasio.read(self._file, engine="normal", encoding="utf-8")
 
         # Get different sections of the LAS file in JSON format
         las_headers = self._extract_header(las_file)
