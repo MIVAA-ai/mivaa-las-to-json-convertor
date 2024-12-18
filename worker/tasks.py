@@ -26,12 +26,16 @@ def convert_las_to_json_task(filepath, output_folder):
         output_folder = Path(output_folder).resolve()
 
         # Calculate file checksum
+        print(f"Calculating checksum for {filepath}...")
         file_checksum = calculate_checksum(filepath)
 
+        # Parse the LAS file
+        print(f"Scanning LAS file: {filepath}...")
         scanner = Scanner(filepath)
         normalised_json = scanner.scan()
 
         # Ensure json_data is a dict/list
+        print(f"Serializing scanned data from {filepath}...")
         json_data = JsonSerializable.to_json(normalised_json)
 
         # Check if json_data is already serialized, if so, load it back
@@ -41,21 +45,23 @@ def convert_las_to_json_task(filepath, output_folder):
         # Save JSON to file
         filename = filepath.stem + ".json"
         output_path = output_folder / filename
+        print(f"Saving JSON data to {output_path}...")
 
         with open(output_path, "w") as json_file:
             json.dump(json_data, json_file, indent=4)
 
-            # Prepare result metadata
-            result = {
-                "status": "SUCCESS",
-                "file_name": filepath.name,
-                "file_checksum": file_checksum,
-                "output_file": str(output_path),
-                "message": f"File processed successfully: {filepath}"
-            }
+        # Prepare result metadata
+        result = {
+            "status": "SUCCESS",
+            "file_name": filepath.name,
+            "file_checksum": file_checksum,
+            "output_file": str(output_path),
+            "message": f"File processed successfully: {filepath}"
+        }
+
+        print(f"Task completed successfully: {result}")
 
 
-        print(f"File processed successfully: {filepath}")
         return result
 
     except Exception as e:

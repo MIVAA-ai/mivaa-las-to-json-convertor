@@ -16,8 +16,8 @@ _backend_folder.mkdir(exist_ok=True, parents=True)
 
 _folders = {
     "data_folder_in": _root.joinpath("in"),
-    "data_folder_out": _root.joinpath("in"),  # Must be the same as 'data_folder_in'
-    "processed_folder": _root.joinpath("processed"),
+    "data_folder_out": _root.joinpath("in")  # Must be the same as 'data_folder_in'
+    # "processed_folder": _root.joinpath("processed"),
 }
 
 for folder in _folders.values():

@@ -12,43 +12,76 @@ class NewFileHandler(FileSystemEventHandler):
     """
 
     def on_created(self, event):
-        # Check if the event is a file and ends with .las
+        """
+        Triggered when a new file is created in the monitored folder.
+        """
         if event.is_directory or not event.src_path.endswith(".las"):
             return
 
         filepath = Path(event.src_path)
         print(f"New file detected: {filepath}")
 
-        # Wait for the file to be fully copied
-        if self._is_file_ready(filepath):
+        # Wait for the file to stabilize
+        if self._wait_for_file_complete(filepath):
             print(f"File ready for processing: {filepath}")
             result = convert_las_to_json_task.delay(str(filepath), str(CRAWLER_CONFIG["PROCESSED_FOLDER"]))
             print(f"Task submitted for {filepath}, Task ID: {result.id}")
         else:
             print(f"File not ready: {filepath}")
 
-    def _is_file_ready(self, filepath, timeout=30, check_interval=1):
+    def _wait_for_file_complete(self, filepath, stabilization_time=10, check_interval=5, abandonment_time=1800):
         """
-        Check if a file is fully copied by monitoring its size.
+        Wait indefinitely until the file size stabilizes and is not modified for a certain duration.
+        Detect abandoned copy operations after prolonged inactivity.
+
         :param filepath: Path of the file to check
-        :param timeout: Total time (seconds) to wait for file to stabilize
-        :param check_interval: Time interval (seconds) between size checks
-        :return: True if the file is ready, False otherwise
+        :param stabilization_time: Time (in seconds) with no modifications before considering the file ready
+        :param check_interval: Interval (in seconds) between file size checks
+        :param abandonment_time: Maximum time (in seconds) with no activity before considering the file abandoned
+        :return: True if the file is ready for processing, False if the copy operation is abandoned
         """
-        last_size = -1
-        elapsed_time = 0
+        print(f"Waiting for file to complete: {filepath}")
+        last_size = -1  # Track the last observed file size
+        last_activity_time = time.time()  # Track the last time the file size changed
 
-        while elapsed_time < timeout:
-            current_size = os.path.getsize(filepath)
-            if current_size == last_size:
-                return True  # File size stabilized, ready for processing
-            last_size = current_size
+        while True:
+            try:
+                # Ensure the file is accessible
+                if not os.access(filepath, os.R_OK):
+                    print(f"File {filepath} is not accessible yet.")
+                    time.sleep(check_interval)
+                    continue
+
+                # Get current file size and modification time
+                current_size = os.path.getsize(filepath)
+                current_modified_time = os.stat(filepath).st_mtime
+
+                # Detect incremental size changes
+                if last_size >= 0:
+                    increment = current_size - last_size
+                    if increment > 0:
+                        print(f"Copied: +{increment} bytes | Total: {current_size} bytes.")
+                        last_activity_time = time.time()  # Update activity timer
+                    else:
+                        # Check for abandonment if no size change
+                        if (time.time() - last_activity_time) > abandonment_time:
+                            print(f"File copy abandoned after {abandonment_time} seconds of inactivity: {filepath}")
+                            return False
+                else:
+                    print(f"Current file size: {current_size} bytes.")
+
+                # Check if the file has stabilized
+                if current_size == last_size and (time.time() - current_modified_time) >= stabilization_time:
+                    print(f"File stabilized: {filepath} with size {current_size} bytes.")
+                    return True
+
+                # Update last observed file size
+                last_size = current_size
+
+            except (OSError, PermissionError) as e:
+                print(f"Error accessing file {filepath}: {e}")
+
             time.sleep(check_interval)
-            elapsed_time += check_interval
-
-        # Timeout reached, file still not stable
-        print(f"Warning: File {filepath} not stabilized after {timeout} seconds.")
-        return False
 
 def watch_folder():
     """
