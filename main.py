@@ -26,8 +26,13 @@
 # if __name__ == "__main__":
 #     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
 
-from crawler import watch_folder
+# from crawler import watch_folder
+#
+# if __name__ == "__main__":
+#     print("Starting the file crawler...")
+#     watch_folder()
+
+from crawler import poll_folder
 
 if __name__ == "__main__":
-    print("Starting the file crawler...")
-    watch_folder()
+    poll_folder()

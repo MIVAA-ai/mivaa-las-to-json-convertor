@@ -9,7 +9,7 @@ from utils.DateUtils import DateUtils
 from pathlib import Path
 from pydantic import ValidationError
 from mappings.JSONWellLogFormat import JsonWellLogFormat
-
+import numpy as np
 class LasScanner:
     def __init__(self, file):
         self._file = file
@@ -20,8 +20,9 @@ class LasScanner:
 
         # Get different sections of the LAS file in JSON format
         las_headers = self._extract_header(las_file)
+        null_value = las_headers.get("null", None)  # Use None if NULL is not defined
         las_curves_headers = self._extract_curve_headers(las_file)
-        las_curves_data = self._extract_bulk_data(las_file)
+        las_curves_data = self._extract_bulk_data(las_file, null_value)
         las_parameters_data = self._extract_parameter_info(las_file)
 
         # Combine all sections into a single JSON structure
@@ -43,7 +44,7 @@ class LasScanner:
             print("Validation Error:", e)
             raise
 
-    def _extract_bulk_data(self, las_file):
+    def _extract_bulk_data(self, las_file, null_value):
         """
         Extract bulk data (curve measurements) from a LAS file.
 
@@ -62,7 +63,10 @@ class LasScanner:
 
         for i in range(num_rows):
             # Create a single row with all curve values for the current index
-            row = [las_file[curve.mnemonic][i] for curve in las_file.curves]
+            row = [
+                null_value if np.isnan(las_file[curve.mnemonic][i]) else las_file[curve.mnemonic][i]
+                for curve in las_file.curves
+            ]
             bulk_data.append(row)
 
         return bulk_data

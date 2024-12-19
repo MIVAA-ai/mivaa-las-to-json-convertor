@@ -22,6 +22,7 @@ class HeaderMapping:
             "name": [], # Will be read from file
             "description": [],
             "wellbore": [],
+            "null": ["NULL", "null"],
             "runNumber": [],  # Not standard in LAS
             "source": [],  # Not standard in LAS
             "dataUri": []  # Not standard in LAS
