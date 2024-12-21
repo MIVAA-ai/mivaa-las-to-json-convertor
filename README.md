@@ -50,7 +50,12 @@ This command will:
 
 ## Testing Results
 
-This application has been tested with 2 GB of LAS data files processed simultaneously, achieving a 100% success rate.
+| Metric                    | Value                     |
+|---------------------------|---------------------------|
+| Number of LAS Files       | 400                       |
+| Total Dataset Size        | 2 GB                      |
+| Processing Time           | 50 minutes               |
+| Success Rate             | 100%                      |
 
 ## Additional Resources
 
