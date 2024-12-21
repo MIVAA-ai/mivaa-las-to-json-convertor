@@ -1,4 +1,4 @@
-# Logs Scanner Application
+# mivaa-las-to-json-convertor
 
 This application scans LAS files in a specified directory and processes them into a standardized JSON format using Docker for easy deployment.
 
