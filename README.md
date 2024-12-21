@@ -75,3 +75,5 @@ This command will:
 
 - This application requires Docker Compose.
 - Ensure your LAS files are properly formatted for successful processing.
+
+Feel free to raise any issues or suggestions for improvement! Reach out for more help, comments, or feedback.
