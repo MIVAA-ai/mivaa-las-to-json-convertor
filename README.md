@@ -60,7 +60,7 @@ This application has been tested with 2 GB of LAS data files processed simultane
 - **Blog**:
   Read the detailed blog post about this application: [Placeholder for Blog Link]
 
-- **JSON Well Log Format**
+- **JSON Well Log Format**:
   Details about JSON Well Log Format: [https://jsonwelllogformat.org/]
 
 ## Troubleshooting
