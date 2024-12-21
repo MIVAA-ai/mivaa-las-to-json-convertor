@@ -17,20 +17,30 @@ class JsonSerializable:
         """
 
         def convert(item):
-            if isinstance(item, BaseModel):  # If it's a Pydantic model, convert it to a dictionary
-                return item.dict()
-            elif isinstance(item, dict):
-                return {k: convert(v) for k, v in item.items()}
-            elif isinstance(item, list):
-                return [convert(v) for v in item]
-            elif isinstance(item, np.integer):
-                return int(item)
-            elif isinstance(item, np.floating):
-                return float(item)
-            elif isinstance(item, np.ndarray):
-                return item.tolist()  # Convert numpy arrays to lists
-            else:
-                return item  # Return other types unchanged
+            try:
+                if isinstance(item, BaseModel):  # Convert Pydantic model to dictionary
+                    return item.dict()
+                elif isinstance(item, dict):  # Recurse into dictionaries
+                    return {k: convert(v) for k, v in item.items()}
+                elif isinstance(item, list):  # Recurse into lists
+                    return [convert(v) for v in item]
+                elif isinstance(item, tuple):  # Convert tuples to lists
+                    return [convert(v) for v in item]
+                elif isinstance(item, np.integer):  # General numpy integer
+                    return int(item)
+                elif isinstance(item, np.floating):  # General numpy float
+                    return float(item)
+                elif isinstance(item, np.ndarray):  # Convert numpy arrays to lists
+                    return item.tolist()
+                elif isinstance(item, np.generic):  # Handle all other numpy scalars
+                    return item.item()
+                else:  # Return unchanged if not special
+                    return item
+            except Exception as e:
+                print(f"Error converting item: {item} - {e}")
+                raise
 
+        # Recursively clean up the object
         serializable_obj = convert(obj)
+
         return json.dumps(serializable_obj, **kwargs)
