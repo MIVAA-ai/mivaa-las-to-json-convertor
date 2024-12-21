@@ -1,6 +1,6 @@
 # mivaa-las-to-json-convertor
 
-This application scans LAS files in a specified directory and processes them into a standardized JSON format using Docker for easy deployment.
+This application scans LAS files in a specified directory and processes them into a JSON Well Log Format format using Docker for easy deployment.
 
 ## Prerequisites
 
@@ -47,6 +47,17 @@ This command will:
   Place your LAS files in the directory specified in the `UPLOADS_VOLUME` path in your `.env` file.
 - **Processed Directory**:
   The processed JSON files will be saved in the directory specified in the `PROCESSED_VOLUME` path.
+
+## Additional Resources
+
+- **YouTube Video**:
+  Watch the tutorial on how to use this application: [Placeholder for YouTube Video Link]
+
+- **Blog**:
+  Read the detailed blog post about this application: [Placeholder for Blog Link]
+
+  **JSON Well Log Format**
+  Details about JSON Well Log Format [https://jsonwelllogformat.org/]
 
 ## Troubleshooting
 
