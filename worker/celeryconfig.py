@@ -20,10 +20,15 @@ _folders = {
 for folder in _folders.values():
     folder.mkdir(exist_ok=True)
 
-# Path to the CSV file for logging results
-csv_path = _root.joinpath("scanned_files.csv")
-os.environ["CSV_PATH"] = str(csv_path)
+# Create 'summary' folder for the CSV file
+_summary_folder = _root.joinpath("summary")
+_summary_folder.mkdir(exist_ok=True, parents=True)
 
+# Path for the scanned_file.csv in the 'summary' folder
+csv_path = _summary_folder / "scanned_file.csv"
+
+# Set the CSV_PATH environment variable
+os.environ["CSV_PATH"] = str(csv_path)
 
 # Celery configuration
 broker_url = "filesystem://localhost//"

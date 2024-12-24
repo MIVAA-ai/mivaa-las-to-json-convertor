@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Create the required folder structure inside the container
-RUN mkdir -p /app/processed /app/uploads /app/logs /app/worker/data/in /app/worker/data/results
+RUN mkdir -p /app/processed /app/uploads /app/logs /app/worker/data/in /app/worker/data/results /app/worker/data/summary
 
 # Expose any necessary ports (if applicable)
 # EXPOSE 5000
