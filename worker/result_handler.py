@@ -3,6 +3,8 @@ import csv
 from .celeryconfig import csv_path
 from . import app
 
+# Global set of headers to ensure consistent column order
+global_headers = set()
 
 def update_csv(result, json_data=None):
     """
@@ -10,7 +12,9 @@ def update_csv(result, json_data=None):
     :param result: Metadata about the LAS to JSON conversion.
     :param json_data: Full JSON data structure including headers, parameters, curves, and data (optional).
     """
-    # Initialize fields
+    global global_headers
+
+    # Extract dynamic headers from JSON data
     header = {}
     curve_names = []
 
@@ -24,26 +28,38 @@ def update_csv(result, json_data=None):
             header = {}
             curve_names = []
 
-    # Ensure curve names are added to the result
+    # Add curve names to the result
     result["Curve Names"] = ", ".join(curve_names) if curve_names else "None"
 
-    # Combine static fields from result and dynamic fields from the header
-    dynamic_fieldnames = list(header.keys())
-    fieldnames = list(result.keys()) + dynamic_fieldnames  # Merge result and header keys
+    # Merge headers and dynamically update the global header set
+    row = {**result, **header}
+    global_headers.update(row.keys())
+
+    # Write to CSV
+    write_to_csv(row)
+
+
+def write_to_csv(row):
+    """
+    Write a single row to the CSV file, ensuring consistent column order.
+    """
+    global global_headers
 
     # Ensure the CSV file exists and write the header
     file_exists = os.path.exists(csv_path)
+
     with open(csv_path, mode="a", newline="", encoding="utf-8") as csv_file:
-        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        # Sort headers alphabetically for consistent order
+        sorted_headers = sorted(global_headers)
+
+        writer = csv.DictWriter(csv_file, fieldnames=sorted_headers)
+
         if not file_exists:
-            writer.writeheader()
+            writer.writeheader()  # Write header if the file is new
 
-        # Prepare the row by combining result and header
-        row = {**result, **header}
-
-        # Write the row to the CSV
-        writer.writerow(row)
-
+        # Align the row with the current global headers
+        aligned_row = {header: row.get(header, None) for header in sorted_headers}
+        writer.writerow(aligned_row)
 
 @app.task(bind=True)
 def handle_task_completion(self, result, json_data=None, initial_task_id=None):
