@@ -59,9 +59,6 @@ This command will:
 
 ## Additional Resources
 
-- **YouTube Video**:
-  Watch the tutorial on how to use this application: [Placeholder for YouTube Video Link]
-
 - **Blog**:
   Read the detailed blog post about this application: [Placeholder for Blog Link]
 
