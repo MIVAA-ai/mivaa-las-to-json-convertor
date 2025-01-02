@@ -47,6 +47,12 @@ This command will:
   Place your LAS files in the directory specified in the `UPLOADS_VOLUME` path in your `.env` file.
 - **Processed Directory**:
   The processed JSON files will be saved in the directory specified in the `PROCESSED_VOLUME` path.
+- **Scanned Files Summary**:
+  A summary of scanned files is saved in `worker/data/summary/scanned_file.csv`.
+- **Processing Logs**:
+  Detailed processing logs are saved in `worker/data/results`.
+- **Converted Output**:
+  Converted files in JSON Well Log Format are saved in the `processed` folder specified by `PROCESSED_VOLUME`.
 
 ## Testing Results
 
@@ -81,5 +87,6 @@ This command will:
 
 - This application requires Docker Compose.
 - Ensure your LAS files are properly formatted for successful processing.
+- Avoid opening the scanned_files.csv in Excel application while system is updating the file because application locks the file which doesnt lets the system update the file with latest information.
 
 Feel free to raise any issues or suggestions for improvement! Reach out for more help, comments, or feedback.
