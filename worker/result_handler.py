@@ -1,10 +1,67 @@
 import os
 import csv
 from .celeryconfig import csv_path
+from .celeryconfig import header_file_path
 from . import app
+import json
+import tempfile
 
-# Global set of headers to ensure consistent column order
-global_headers = set()
+def load_headers():
+    """
+    Load headers from the header file.
+    Creates an empty list if the file does not exist.
+    """
+    if os.path.exists(header_file_path):
+        with open(header_file_path, "r") as file:
+            return json.load(file)  # Return as a list
+    return []  # Return an empty list if the file does not exist
+
+def save_headers(headers):
+    """
+    Save headers to the header file.
+    """
+    with open(header_file_path, "w") as file:
+        json.dump(headers, file)  # Save headers as a list
+
+def append_row_to_csv(row, global_headers):
+    """
+    Append a row to the CSV file without rewriting the entire file.
+    If new headers are added, the file header is updated.
+    """
+    # Check if the file exists
+    file_exists = os.path.exists(csv_path)
+
+    # If the file exists, ensure headers are updated
+    if file_exists:
+        with open(csv_path, "r", newline="", encoding="utf-8") as csv_file:
+            reader = csv.DictReader(csv_file)
+            current_headers = reader.fieldnames or []
+
+            # If new headers are found, rewrite the header only
+            if set(global_headers) != set(current_headers):
+                rewrite_csv_headers(global_headers)
+
+    # Append the row to the CSV file
+    with open(csv_path, mode="a", newline="", encoding="utf-8") as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=global_headers)
+        writer.writerow(row)
+
+def rewrite_csv_headers(global_headers):
+    """
+    Rewrite only the headers of the CSV file without rewriting rows.
+    """
+    # Read existing rows
+    rows = []
+    if os.path.exists(csv_path):
+        with open(csv_path, "r", newline="", encoding="utf-8") as csv_file:
+            reader = csv.DictReader(csv_file)
+            rows = list(reader)
+
+    # Write back rows with updated headers
+    with open(csv_path, "w", newline="", encoding="utf-8") as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=global_headers)
+        writer.writeheader()
+        writer.writerows(rows)
 
 def update_csv(result, json_data=None):
     """
@@ -12,7 +69,8 @@ def update_csv(result, json_data=None):
     :param result: Metadata about the LAS to JSON conversion.
     :param json_data: Full JSON data structure including headers, parameters, curves, and data (optional).
     """
-    global global_headers
+    # Load existing headers
+    global_headers = load_headers()
 
     # Extract dynamic headers from JSON data
     header = {}
@@ -31,35 +89,101 @@ def update_csv(result, json_data=None):
     # Add curve names to the result
     result["Curve Names"] = ", ".join(curve_names) if curve_names else "None"
 
-    # Merge headers and dynamically update the global header set
+    # Merge result and dynamic headers
     row = {**result, **header}
-    global_headers.update(row.keys())
 
-    # Write to CSV
-    write_to_csv(row)
+    # Update global headers while preserving their order
+    for header in row.keys():
+        if header not in global_headers:
+            global_headers.append(header)
 
+    # Save the updated headers
+    save_headers(global_headers)
 
-def write_to_csv(row):
-    """
-    Write a single row to the CSV file, ensuring consistent column order.
-    """
-    global global_headers
+    # Append the row to the CSV file
+    append_row_to_csv(row, global_headers)
 
-    # Ensure the CSV file exists and write the header
-    file_exists = os.path.exists(csv_path)
+# def write_to_csv(row, global_headers):
+#     """
+#     Write a single row to the CSV file, ensuring consistent column order
+#     while adding new headers as columns at the end of the file.
+#     """
+#     # Align the row with the current headers
+#     aligned_row = {header: row.get(header, None) for header in global_headers}
+#
+#     # Check if the CSV file already exists
+#     file_exists = os.path.exists(csv_path)
+#
+#     # Read existing rows if the file exists
+#     existing_rows = []
+#     if file_exists:
+#         with open(csv_path, mode="r", newline="", encoding="utf-8") as csv_file:
+#             reader = csv.DictReader(csv_file)
+#             existing_rows = list(reader)
+#
+#     # Write the data to the CSV file with updated headers
+#     with open(csv_path, mode="w", newline="", encoding="utf-8") as csv_file:
+#         writer = csv.DictWriter(csv_file, fieldnames=global_headers)
+#
+#         # Write the header
+#         writer.writeheader()
+#
+#         # Rewrite existing rows with updated headers
+#         for existing_row in existing_rows:
+#             aligned_existing_row = {header: existing_row.get(header, None) for header in global_headers}
+#             writer.writerow(aligned_existing_row)
+#
+#         # Write the new row
+#         writer.writerow(aligned_row)
+#
+#     # Debugging output for aligned row
+#     print("Aligned Row Written to CSV:")
+#     print(json.dumps(aligned_row, indent=4))
+#
+#     # Temporary file for debugging aligned rows
+#     temp_file_path = os.path.join(tempfile.gettempdir(), "aligned_rows_debug.txt")
+#
+#     # Append the aligned row to the temporary file (debugging purpose)
+#     with open(temp_file_path, mode="a", encoding="utf-8") as temp_file:
+#         temp_file.write(json.dumps(aligned_row, indent=4) + "\n")
+#
+#     print(f"Aligned row appended to temporary file: {temp_file_path}")
 
-    with open(csv_path, mode="a", newline="", encoding="utf-8") as csv_file:
-        # Sort headers alphabetically for consistent order
-        sorted_headers = sorted(global_headers)
+# def write_to_csv(row, global_headers):
+#     """
+#     Write a single row to the CSV file, ensuring consistent column order
+#     while preserving the order in which headers are encountered.
+#     """
+#     # Align the row with the current headers
+#     aligned_row = {header: row.get(header, None) for header in global_headers}
+#
+#     # Temporary file for debugging aligned rows
+#     temp_file_path = os.path.join(tempfile.gettempdir(), "aligned_rows_debug.txt")
+#
+#     # Append the aligned row to the temporary file (debugging purpose)
+#     with open(temp_file_path, mode="a", encoding="utf-8") as temp_file:
+#         temp_file.write(json.dumps(aligned_row, indent=4) + "\n")
+#
+#     print(f"Aligned row appended to temporary file: {temp_file_path}")
+#
+#     # Debugging output for aligned row
+#     print("Aligned Row:")
+#     print(json.dumps(aligned_row, indent=4))
+#
+#     # Check if the CSV file already exists
+#     file_exists = os.path.exists(csv_path)
+#
+#     # Write the data to the CSV file
+#     with open(csv_path, mode="a", newline="", encoding="utf-8") as csv_file:
+#         writer = csv.DictWriter(csv_file, fieldnames=global_headers)
+#
+#         # Write the header only if the file is new
+#         if not file_exists:
+#             writer.writeheader()
+#
+#         # Write the aligned row
+#         writer.writerow(aligned_row)
 
-        writer = csv.DictWriter(csv_file, fieldnames=sorted_headers)
-
-        if not file_exists:
-            writer.writeheader()  # Write header if the file is new
-
-        # Align the row with the current global headers
-        aligned_row = {header: row.get(header, None) for header in sorted_headers}
-        writer.writerow(aligned_row)
 
 @app.task(bind=True)
 def handle_task_completion(self, result, json_data=None, initial_task_id=None):

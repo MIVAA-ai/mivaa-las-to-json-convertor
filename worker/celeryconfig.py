@@ -26,6 +26,7 @@ _summary_folder.mkdir(exist_ok=True, parents=True)
 
 # Path for the scanned_file.csv in the 'summary' folder
 csv_path = _summary_folder / "scanned_file.csv"
+header_file_path = _summary_folder / "headers.json"  # Persistent header storage
 
 # Set the CSV_PATH environment variable
 os.environ["CSV_PATH"] = str(csv_path)
