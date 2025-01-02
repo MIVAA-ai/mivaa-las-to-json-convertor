@@ -2,12 +2,10 @@
 
 from pathlib import Path
 import os
-from celery.exceptions import CPendingDeprecationWarning
 import warnings
 
 # Suppress CPendingDeprecationWarnings
-warnings.filterwarnings("ignore", category=CPendingDeprecationWarning)
-
+warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
 
 # Root directory for storing broker and backend data
 _root = Path(__file__).parent.resolve().joinpath("data")
@@ -17,11 +15,21 @@ _backend_folder.mkdir(exist_ok=True, parents=True)
 _folders = {
     "data_folder_in": _root.joinpath("in"),
     "data_folder_out": _root.joinpath("in")  # Must be the same as 'data_folder_in'
-    # "processed_folder": _root.joinpath("processed"),
 }
 
 for folder in _folders.values():
     folder.mkdir(exist_ok=True)
+
+# Create 'summary' folder for the CSV file
+_summary_folder = _root.joinpath("summary")
+_summary_folder.mkdir(exist_ok=True, parents=True)
+
+# Path for the scanned_file.csv in the 'summary' folder
+csv_path = _summary_folder / "scanned_file.csv"
+header_file_path = _summary_folder / "headers.json"  # Persistent header storage
+
+# Set the CSV_PATH environment variable
+os.environ["CSV_PATH"] = str(csv_path)
 
 # Celery configuration
 broker_url = "filesystem://localhost//"
@@ -31,7 +39,7 @@ task_serializer = "json"
 persist_results = True
 result_serializer = "json"
 accept_content = ["json"]
-imports = ("worker.tasks",)  # Import the task module
+imports = ("worker.tasks",)
 
 # New setting to avoid deprecation warning
 broker_connection_retry_on_startup = True

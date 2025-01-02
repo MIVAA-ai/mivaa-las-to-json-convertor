@@ -1,6 +1,6 @@
-"""
-This class will take file object as input and return a standardize output for las files
-"""
+# """
+# This class will take file object as input and return a standardize output for las files
+# """
 
 import lasio
 import lasio.examples
@@ -46,30 +46,32 @@ class LasScanner:
 
     def _extract_bulk_data(self, las_file, null_value):
         """
-        Extract bulk data (curve measurements) from a LAS file.
+        Optimized extraction of bulk data (curve measurements) from a LAS file using NumPy.
 
         Args:
             las_file (lasio.LASFile): The LAS file object.
+            null_value (float): The null value to replace NaNs.
 
         Returns:
             list: A list of data rows, each being an array of values corresponding to the curves.
         """
-        # Extract data as a 2D array (rows and columns)
-        bulk_data = []
+        try:
+            # Extract data as a NumPy array for faster processing
+            curve_data = np.array([curve.data for curve in las_file.curves])
 
-        # Convert LAS curve data into a structured format
-        # Use the first curve to determine the number of rows (all curves have the same number of data points)
-        num_rows = len(las_file[las_file.curves[0].mnemonic])
+            # Transpose to align rows with indices and columns with curves
+            curve_data = curve_data.T
 
-        for i in range(num_rows):
-            # Create a single row with all curve values for the current index
-            row = [
-                null_value if np.isnan(las_file[curve.mnemonic][i]) else las_file[curve.mnemonic][i]
-                for curve in las_file.curves
-            ]
-            bulk_data.append(row)
+            # Replace NaN values with the specified null value
+            if null_value is not None:
+                curve_data = np.where(np.isnan(curve_data), null_value, curve_data)
 
-        return bulk_data
+            # Convert back to a Python list
+            return curve_data.tolist()
+
+        except Exception as e:
+            print(f"Error during bulk data extraction: {e}")
+            raise
 
     #extracting only the headers of the well log file
     def _extract_header(self, las_file):
