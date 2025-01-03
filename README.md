@@ -13,33 +13,35 @@ This application scans LAS files in a specified directory and processes them int
 3. **Install Docker**:
    - Ensure Docker is installed and running on your machine. You can download Docker [here](https://www.docker.com/).
 
-## Steps to Run the Application
+## Steps to Run the Application Using the Startup Script
 
-### 1. Update the `.env` File
+### 2. Execute the Script
+- Open a terminal or command prompt, navigate to the directory where the script is saved (in this case it will be github repo directory), and run it with the base directory as an argument.
 
-Edit the `.env` file in the root of the repository and update it with the directories on your system. Ensure these directories exist on your machine before running the application:
+#### For Windows:
+1. Open Command Prompt.
+2. Run the command:
+   ```cmd
+   startup-windows.bat "F:/logs-scanner-directory"
+   ```
+   Replace `F:/logs-scanner-directory` with your desired base directory.
 
-```env
-PROCESSED_VOLUME=F:/logs-scanner-directory/processed
-UPLOADS_VOLUME=F:/logs-scanner-directory/uploads
-LOGS_VOLUME=F:/logs-scanner-directory/logs
-DATA_IN_VOLUME=F:/logs-scanner-directory/worker/data/in
-DATA_RESULTS_VOLUME=F:/logs-scanner-directory/worker/data/results
-```
+#### For Linux:
+1. Open a terminal.
+2. Make the script executable (only needed the first time):
+   ```bash
+   chmod +x startup-linux.sh
+   ```
+3. Run the command:
+   ```bash
+   ./startup-linux.sh /path/to/logs-scanner-directory
+   ```
+   Replace `/path/to/logs-scanner-directory` with your desired base directory.
 
-- Replace `F:/logs-scanner-directory` with the desired base path on your system.
-
-### 2. Start the Application
-
-Run the following command to start the application:
-
-```bash
-docker-compose --env-file .env up
-```
-
-This command will:
-- Build the necessary Docker images.
-- Start the containers for the application.
+### 3. What the Script Does
+- Automatically creates the necessary folders in the base directory.
+- Updates the `.env` file with the correct paths.
+- Starts the application using Docker Compose.
 
 ### 3. Access the Logs and Processed Data
 
