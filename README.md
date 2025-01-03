@@ -5,7 +5,7 @@ This application scans LAS files in a specified directory and processes them int
 ## Prerequisites
 
 1. **Download the Repository**:
-   - Clone or download the repository as a ZIP file.
+   - Clone or download the repository as a [ZIP](https://github.com/MIVAA-ai/mivaa-las-to-json-convertor/archive/refs/heads/main.zip) file.
 
 2. **Unzip the Repository**:
    - Extract the downloaded ZIP file to a folder on your system.
