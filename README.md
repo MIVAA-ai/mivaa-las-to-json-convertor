@@ -90,5 +90,6 @@ This application scans LAS files in a specified directory and processes them int
 - This application requires Docker Compose.
 - Ensure your LAS files are properly formatted for successful processing.
 - Avoid opening the scanned_files.csv in Excel application while system is updating the file because application locks the file which doesnt lets the system update the file with latest information.
+- This applications is currently tested in windows environment, incase you face any issues running it in Linux environment, feel free to reach out.
 
 Feel free to raise any issues or suggestions for improvement! Reach out for more help, comments, or feedback.
