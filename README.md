@@ -15,7 +15,7 @@ This application scans LAS files in a specified directory and processes them int
 
 ## Steps to Run the Application Using the Startup Script
 
-### 2. Execute the Script
+### 1. Execute the Script
 - Open a terminal or command prompt, navigate to the directory where the script is saved (in this case it will be github repo directory), and run it with the base directory as an argument.
 
 #### For Windows:
@@ -38,7 +38,7 @@ This application scans LAS files in a specified directory and processes them int
    ```
    Replace `/path/to/logs-scanner-directory` with your desired base directory.
 
-### 3. What the Script Does
+### 2. What the Script Does
 - Automatically creates the necessary folders in the base directory.
 - Updates the `.env` file with the correct paths.
 - Starts the application using Docker Compose.
