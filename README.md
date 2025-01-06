@@ -68,7 +68,7 @@ This application scans LAS files in a specified directory and processes them int
 ## Additional Resources
 
 - **Blog**:
-  Read the detailed blog post about this application: [Placeholder for Blog Link]
+  Read the detailed blog post about this application: [https://deepdatawithmivaa.com/2025/01/06/upgrade-your-well-log-data-workflow-vol-1-from-las-2-0-to-json/]
 
 - **JSON Well Log Format**:
   Details about JSON Well Log Format: [https://jsonwelllogformat.org/]
